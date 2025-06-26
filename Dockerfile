@@ -32,7 +32,6 @@ RUN cd usbmuxd && ./autogen.sh && make && make install
 RUN ldconfig
 RUN rm -rf /var/lib/apt/lists/* /opt/src
 WORKDIR /app
-ENV USBMUXD_SOCKET_ADDRESS=/tmp/socket.sock
 COPY run.sh run.sh
 COPY goios.sh goios.sh
 COPY --from=goios /app/goios /goios
