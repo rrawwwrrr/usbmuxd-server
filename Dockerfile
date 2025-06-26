@@ -34,6 +34,8 @@ RUN rm -rf /var/lib/apt/lists/* /opt/src
 WORKDIR /app
 ENV USBMUXD_SOCKET_ADDRESS=/tmp/socket.sock
 COPY run.sh run.sh
+COPY goios.sh goios.sh
 COPY --from=goios /app/goios /goios
 RUN chmod +x run.sh
+RUN chmod +x goios.sh
 ENTRYPOINT ["./run.sh"]
