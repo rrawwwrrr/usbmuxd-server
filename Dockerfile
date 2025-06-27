@@ -1,11 +1,5 @@
-FROM ubuntu:24.04 as goios
+FROM golang:1.23.0 as goios
 RUN apt-get update && apt-get -y install unzip wget curl git
-RUN curl -O https://dl.google.com/go/go1.23.0.linux-amd64.tar.gz \
-    && tar -xvf go1.23.0.linux-amd64.tar.gz \
-    && mv go /usr/local
-ENV GOROOT=/usr/local/go
-ENV GOPATH=/go
-ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 WORKDIR /app
 RUN git clone https://github.com/danielpaulus/go-ios.git .
 RUN go build -o goios
