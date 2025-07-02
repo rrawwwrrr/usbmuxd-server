@@ -1,6 +1,11 @@
 FROM golang:1.23.0 as goios
 RUN apt-get update && apt-get -y install unzip wget curl git
 WORKDIR /app
+COPY goios-peer .
+RUN go build -o app
+RUN chmod +x app
+
+RUN chmod +x goios
 RUN git clone https://github.com/danielpaulus/go-ios.git .
 RUN go build -o goios
 RUN chmod +x goios
