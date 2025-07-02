@@ -1,4 +1,4 @@
-FROM golang:1.24.2 as goios
+FROM golang:1.24.2 as builder
 RUN apt-get update && apt-get -y install unzip wget curl git
 WORKDIR /app
 COPY goios-peer .
@@ -33,7 +33,7 @@ RUN rm -rf /var/lib/apt/lists/* /opt/src
 WORKDIR /app
 COPY run.sh run.sh
 COPY goios.sh goios.sh
-COPY --from=goios /app/app /app
+COPY --from=builder /app/app /peer
 RUN chmod +x run.sh
 RUN chmod +x goios.sh
 
