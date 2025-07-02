@@ -5,6 +5,7 @@ COPY goios-peer .
 RUN go build -o peer
 RUN chmod +x peer
 
+
 #RUN chmod +x goios
 #RUN git clone https://github.com/danielpaulus/go-ios.git .
 #RUN go build -o goios
