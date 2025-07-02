@@ -33,7 +33,8 @@ RUN rm -rf /var/lib/apt/lists/* /opt/src
 WORKDIR /app
 COPY run.sh run.sh
 COPY goios.sh goios.sh
-COPY --from=goios /app/goios /goios
+COPY --from=goios /app/app /app
 RUN chmod +x run.sh
 RUN chmod +x goios.sh
+
 ENTRYPOINT ["./run.sh"]
