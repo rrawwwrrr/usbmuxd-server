@@ -9,7 +9,7 @@ RUN chmod +x goios
 FROM ubuntu:24.04
 RUN apt-get update && apt-get install -y git build-essential pkg-config autoconf automake \
     libtool-bin python3 python-is-python3 libssl-dev libusb-1.0-0-dev  \
-     socat checkinstall curl libcurl4-openssl-dev net-tools
+     socat checkinstall curl libcurl4-openssl-dev net-tools vim
 WORKDIR /opt/src
 RUN git clone https://github.com/libimobiledevice/libplist
 RUN git clone https://github.com/libimobiledevice/libtatsu.git
