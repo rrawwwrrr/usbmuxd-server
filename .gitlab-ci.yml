@@ -11,4 +11,4 @@ stages:
 build:
   extends: .build
   only:
-    - deploy
+    - main
