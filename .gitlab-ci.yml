@@ -3,7 +3,6 @@ include:
     ref: main
     file:
       - 'build_harbor_all.yaml'
-      - 'deploy_harbor_k8s.yaml'
 
 stages:
   - build
