@@ -26,6 +26,7 @@ func Start() {
 	go startTunnel(context.TODO())
 	time.Sleep(4 * time.Second)
 	devices, err := ios.ListDevices()
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,6 +38,11 @@ func Start() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	tunnels, err := tm.FindTunnel(device.Properties.SerialNumber)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("tunnels found:", tunnels.Udid)
 	runWda(device)
 	//err = instruments.StartMJPEGStreamingServer(device, "3333")
 	//if err != nil {
