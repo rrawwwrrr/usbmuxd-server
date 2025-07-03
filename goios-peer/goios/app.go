@@ -46,7 +46,7 @@ func Start() {
 	log.Println("tunnels found:", tunnels.Udid)
 	err = instruments.StartMJPEGStreamingServer(device, "3333")
 	if err != nil {
-		log.Fatal(err)
+		log.Info(err)
 	}
 	runWda(device)
 
