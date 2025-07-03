@@ -32,8 +32,10 @@ func Start() {
 	}
 	device := devices.DeviceList[0]
 	tools.ExitIfError("device ", err)
-	imagemounter.MountImage(device, "")
-
+	err = imagemounter.MountImage(device, "")
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = instruments.StartMJPEGStreamingServer(device, "3333")
 	if err != nil {
 		log.Fatal(err)
