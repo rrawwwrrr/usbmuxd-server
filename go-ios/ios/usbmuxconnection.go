@@ -114,6 +114,8 @@ func (muxConn *UsbMuxConnection) Send(msg interface{}) error {
 // This does not increase the tag on the connection. Is used mainly by the debug proxy to
 // forward messages between device and host
 func (muxConn *UsbMuxConnection) SendMuxMessage(msg UsbMuxMessage) error {
+	log.Info("SendMuxMessage message")
+	log.Info(string(msg.Payload))
 	if muxConn.deviceConn == nil {
 		return io.EOF
 	}
