@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/danielpaulus/go-ios/ios"
+	"github.com/danielpaulus/go-ios/ios/imagemounter"
 	"github.com/danielpaulus/go-ios/ios/instruments"
 	"github.com/danielpaulus/go-ios/ios/testmanagerd"
 	"github.com/danielpaulus/go-ios/ios/tunnel"
@@ -26,11 +27,14 @@ func Start() {
 	go startTunnel(context.TODO())
 	time.Sleep(4 * time.Second)
 	devices, err := ios.ListDevices()
-	tools.ExitIfError("device ", err)
 	for i := range devices.DeviceList {
 		log.Print(devices.DeviceList[i].Properties.SerialNumber)
 	}
-	err = instruments.StartMJPEGStreamingServer(devices.DeviceList[0], "3333")
+	device := devices.DeviceList[0]
+	tools.ExitIfError("device ", err)
+	imagemounter.MountImage(device, "")
+
+	err = instruments.StartMJPEGStreamingServer(device, "3333")
 	if err != nil {
 		log.Fatal(err)
 	}
