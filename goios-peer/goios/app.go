@@ -11,7 +11,6 @@ import (
 
 	"github.com/danielpaulus/go-ios/ios"
 	"github.com/danielpaulus/go-ios/ios/imagemounter"
-	"github.com/danielpaulus/go-ios/ios/instruments"
 	"github.com/danielpaulus/go-ios/ios/testmanagerd"
 	"github.com/danielpaulus/go-ios/ios/tunnel"
 	log "github.com/sirupsen/logrus"
@@ -39,10 +38,10 @@ func Start() {
 		log.Fatal(err)
 	}
 	runWda(device)
-	err = instruments.StartMJPEGStreamingServer(device, "3333")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//err = instruments.StartMJPEGStreamingServer(device, "3333")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 }
 
