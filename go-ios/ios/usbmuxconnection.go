@@ -136,12 +136,14 @@ func (muxConn *UsbMuxConnection) ReadMessage() (UsbMuxMessage, error) {
 	if err != nil {
 		return UsbMuxMessage{}, err
 	}
+	log.Info("Received message")
+	log.Info(msg)
 	return msg, nil
 }
 
 // encode serializes a MuxMessage struct to a Plist and writes it to the io.Writer.
 func (muxConn *UsbMuxConnection) encode(message interface{}, writer io.Writer) error {
-	log.Tracef("UsbMux send %v  on  %v", reflect.TypeOf(message), muxConn.deviceConn)
+	log.Tracef("UsbMux send %v, message: %+v  on  %v", reflect.TypeOf(message), message, &muxConn.deviceConn)
 	mbytes := ToPlistBytes(message)
 	err := writeHeader(len(mbytes), muxConn.tag, writer)
 	if err != nil {
@@ -171,7 +173,7 @@ func (muxConn UsbMuxConnection) decode(r io.Reader) (UsbMuxMessage, error) {
 	if err != nil {
 		return UsbMuxMessage{}, fmt.Errorf("Error '%s' while reading usbmux package. Only %d bytes received instead of %d", err.Error(), n, muxHeader.Length-16)
 	}
-	log.Tracef("UsbMux Receive on %v", muxConn.deviceConn)
+	log.Tracef("UsbMux Receive on %v", &muxConn.deviceConn)
 
 	return UsbMuxMessage{muxHeader, payloadBytes}, nil
 }
