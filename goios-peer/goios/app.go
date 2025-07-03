@@ -27,15 +27,18 @@ func Start() {
 	go startTunnel(context.TODO())
 	time.Sleep(4 * time.Second)
 	devices, err := ios.ListDevices()
+	if err != nil {
+		log.Fatal(err)
+	}
 	for i := range devices.DeviceList {
 		log.Print(devices.DeviceList[i].Properties.SerialNumber)
 	}
 	device := devices.DeviceList[0]
-	tools.ExitIfError("device ", err)
 	err = imagemounter.MountImage(device, "")
 	if err != nil {
 		log.Fatal(err)
 	}
+	runWda(device)
 	err = instruments.StartMJPEGStreamingServer(device, "3333")
 	if err != nil {
 		log.Fatal(err)
