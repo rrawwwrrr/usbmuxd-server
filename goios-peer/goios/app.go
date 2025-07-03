@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/danielpaulus/go-ios/ios"
+	"github.com/danielpaulus/go-ios/ios/instruments"
 	"github.com/danielpaulus/go-ios/ios/testmanagerd"
 	"github.com/danielpaulus/go-ios/ios/tunnel"
 	log "github.com/sirupsen/logrus"
@@ -29,6 +30,7 @@ func Start() {
 	for i := range devices.DeviceList {
 		log.Print(devices.DeviceList[i].Properties.SerialNumber)
 	}
+	instruments.StartMJPEGStreamingServer(devices.DeviceList[0], "3333")
 
 }
 
