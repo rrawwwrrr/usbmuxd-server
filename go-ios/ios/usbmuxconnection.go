@@ -137,7 +137,7 @@ func (muxConn *UsbMuxConnection) ReadMessage() (UsbMuxMessage, error) {
 		return UsbMuxMessage{}, err
 	}
 	log.Info("Received message")
-	log.Info(msg)
+	log.Info(string(msg.Payload))
 	return msg, nil
 }
 
