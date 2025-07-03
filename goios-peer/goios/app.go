@@ -30,7 +30,10 @@ func Start() {
 	for i := range devices.DeviceList {
 		log.Print(devices.DeviceList[i].Properties.SerialNumber)
 	}
-	instruments.StartMJPEGStreamingServer(devices.DeviceList[0], "3333")
+	err = instruments.StartMJPEGStreamingServer(devices.DeviceList[0], "3333")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
 
