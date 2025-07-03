@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/danielpaulus/go-ios/ios"
+	"github.com/danielpaulus/go-ios/ios/forward"
 	"github.com/danielpaulus/go-ios/ios/imagemounter"
 	"github.com/danielpaulus/go-ios/ios/testmanagerd"
 	"github.com/danielpaulus/go-ios/ios/tunnel"
@@ -32,7 +33,7 @@ func Start() {
 	}
 	log.Println("Найденные устройства")
 	for i := range devices.DeviceList {
-		log.Print(devices.DeviceList[i].Properties.SerialNumber)
+		log.Info(devices.DeviceList[i].Properties.SerialNumber)
 	}
 
 	device := devices.DeviceList[0]
@@ -45,7 +46,11 @@ func Start() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	conn, err := forward.Forward(device, 7777, 8100)
+	if err != nil {
+		log.Info(err)
+	}
+	log.Info(conn)
 	log.Println("tunnel найден для устройства Udid=", tunnel.Udid)
 	log.Println("Запускаем mjpeg stream server ")
 	err = StartMJPEGStreamingServer(device, "3333")
