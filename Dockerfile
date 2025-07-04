@@ -1,4 +1,5 @@
 FROM golang:1.24.2 as builder
+RUN cat /etc/os-release
 RUN apt-get update && apt-get -y install unzip wget curl git
 WORKDIR /app
 COPY go-ios go-ios
