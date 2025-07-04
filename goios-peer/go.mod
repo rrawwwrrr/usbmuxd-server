@@ -38,4 +38,4 @@ require (
 	howett.net/plist v0.0.0-20200419221736-3b63eb3a43b5 // indirect
 	software.sslmate.com/src/go-pkcs12 v0.2.0 // indirect
 )
-replace github.com/danielpaulus/go-ios => ../go-ios
+//replace github.com/danielpaulus/go-ios => ../go-ios
