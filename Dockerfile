@@ -4,6 +4,11 @@ RUN apt-get update && apt-get -y install unzip wget curl git
 WORKDIR /app
 COPY go-ios go-ios
 COPY goios-peer goios-peer
+
+WORKDIR /app/go-ios
+RUN go build -o ../goios
+RUN chmod +x ../goios
+
 WORKDIR /app/goios-peer
 RUN go build -o ../peer
 RUN chmod +x ../peer
@@ -36,6 +41,7 @@ RUN rm -rf /var/lib/apt/lists/* /opt/src
 WORKDIR /app
 COPY run.sh run.sh
 COPY goios.sh goios.sh
+COPY --from=builder /app/goios /app/goios
 COPY --from=builder /app/peer /app/peer
 RUN chmod +x run.sh
 RUN chmod +x goios.sh

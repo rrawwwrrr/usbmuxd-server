@@ -12,6 +12,7 @@ import (
 	"github.com/danielpaulus/go-ios/ios"
 	"github.com/danielpaulus/go-ios/ios/forward"
 	"github.com/danielpaulus/go-ios/ios/imagemounter"
+	"github.com/danielpaulus/go-ios/ios/instruments"
 	"github.com/danielpaulus/go-ios/ios/testmanagerd"
 	"github.com/danielpaulus/go-ios/ios/tunnel"
 	log "github.com/sirupsen/logrus"
@@ -23,7 +24,7 @@ var tunnelInfoPort = 60000
 func Start() {
 	pm, err := tunnel.NewPairRecordManager(".")
 	tools.ExitIfError("could not creat pair record manager", err)
-	tm = tunnel.NewTunnelManager(pm, false)
+	tm = tunnel.NewTunnelManager(pm, true)
 	go startTunnel(context.TODO())
 	time.Sleep(4 * time.Second)
 	devices, err := ios.ListDevices()
@@ -53,7 +54,7 @@ func Start() {
 	log.Info(conn)
 	log.Println("tunnel найден для устройства Udid=", tunnel.Udid)
 	log.Println("Запускаем mjpeg stream server ")
-	err = StartMJPEGStreamingServer(device, "3333")
+	err = instruments.StartMJPEGStreamingServer(device, "3333")
 	if err != nil {
 		log.Info(err)
 	}
