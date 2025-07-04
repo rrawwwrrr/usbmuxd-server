@@ -1,5 +1,4 @@
 FROM golang:1.24.2 as builder
-RUN cat /etc/os-release
 RUN apt-get update && apt-get -y install unzip wget curl git
 WORKDIR /app
 COPY go-ios go-ios
@@ -19,7 +18,6 @@ RUN chmod +x ../peer
 #RUN chmod +x goios
 
 FROM ubuntu:24.04
-RUN cat /etc/os-release
 RUN apt-get update && apt-get install -y git build-essential pkg-config autoconf automake \
     libtool-bin python3 python-is-python3 libssl-dev libusb-1.0-0-dev  \
      socat checkinstall curl libcurl4-openssl-dev net-tools vim
