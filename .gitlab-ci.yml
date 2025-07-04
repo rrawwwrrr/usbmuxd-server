@@ -7,7 +7,6 @@ include:
 stages:
   - build
 
-
 build:
   extends: .build
   only:
