@@ -37,7 +37,7 @@ func Start() {
 		log.Info(devices.DeviceList[i].Properties.SerialNumber)
 	}
 
-	device := devices.DeviceList[0]
+	device := getDeviceWithRsdProvider(devices.DeviceList[0])
 	err = imagemounter.MountImage(device, "")
 	if err != nil {
 		log.Fatal(err)
@@ -75,11 +75,7 @@ func runWda(device ios.DeviceEntry) {
 	ctx, stopWda := context.WithCancel(context.Background())
 
 	go func() {
-		info, _ := tm.FindTunnel(device.Properties.SerialNumber)
-		log.Printf(info.Udid)
-		device.UserspaceTUNPort = info.UserspaceTUNPort
-		device.UserspaceTUN = info.UserspaceTUN
-		device = deviceWithRsdProvider(device, info.Address, info.RsdPort)
+
 		_, err := testmanagerd.RunTestWithConfig(ctx, testmanagerd.TestConfig{
 			BundleId:           bundleID,
 			TestRunnerBundleId: testbundleID,
@@ -135,6 +131,13 @@ func startTunnel(ctx context.Context) {
 	}()
 	log.Info("Tunnel server started")
 	<-ctx.Done()
+}
+func getDeviceWithRsdProvider(device ios.DeviceEntry) ios.DeviceEntry {
+	info, _ := tm.FindTunnel(device.Properties.SerialNumber)
+	device.UserspaceTUNPort = info.UserspaceTUNPort
+	device.UserspaceTUN = info.UserspaceTUN
+	device = deviceWithRsdProvider(device, info.Address, info.RsdPort)
+	return device
 }
 
 func deviceWithRsdProvider(device ios.DeviceEntry, address string, rsdPort int) ios.DeviceEntry {
