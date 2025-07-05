@@ -12,7 +12,6 @@ import (
 	"github.com/danielpaulus/go-ios/ios"
 	"github.com/danielpaulus/go-ios/ios/forward"
 	"github.com/danielpaulus/go-ios/ios/imagemounter"
-	"github.com/danielpaulus/go-ios/ios/instruments"
 	"github.com/danielpaulus/go-ios/ios/testmanagerd"
 	"github.com/danielpaulus/go-ios/ios/tunnel"
 	log "github.com/sirupsen/logrus"
@@ -54,7 +53,7 @@ func Start() {
 	log.Info(conn)
 	log.Println("tunnel найден для устройства Udid=", tunnel.Udid)
 	log.Println("Запускаем mjpeg stream server ")
-	err = instruments.StartMJPEGStreamingServer(device, "3333")
+	err = StartMJPEGStreamingServer(device, "3333")
 	if err != nil {
 		log.Info(err)
 	}

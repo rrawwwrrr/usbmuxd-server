@@ -63,7 +63,16 @@ func startConversionQueue() {
 		log.Debugf("conversion took %fs", elapsed.Seconds())
 		consumers.Range(func(key, value interface{}) bool {
 			c := value.(chan []byte)
-			go func() { c <- b.Bytes() }()
+			data := append([]byte(nil), b.Bytes()...) // Копируем!
+			go func() {
+				// Можно добавить recover для отлова panic
+				defer func() {
+					if r := recover(); r != nil {
+						log.Warnf("panic in consumer send: %v", r)
+					}
+				}()
+				c <- data
+			}()
 			return true
 		})
 	}
