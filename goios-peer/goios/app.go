@@ -2,6 +2,7 @@ package goios
 
 import (
 	"context"
+	"goios-peer/socket"
 	"goios-peer/tools"
 	"io"
 	"os"
@@ -57,6 +58,7 @@ func Start() {
 	if err != nil {
 		log.Info(err)
 	}
+	go socket.Start()
 	runWda(device)
 
 }
