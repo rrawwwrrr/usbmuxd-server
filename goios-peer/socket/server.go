@@ -67,12 +67,12 @@ func handleConn(tcpConn net.Conn) {
 }
 
 func Start() {
-	ln, err := net.Listen("tcp", ":12345")
+	ln, err := net.Listen("tcp", ":27015")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer ln.Close()
-	log.Println("Proxy server listening on :12345")
+	log.Println("Proxy server listening on :27015")
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
