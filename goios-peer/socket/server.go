@@ -13,7 +13,7 @@ var destinations = map[string]string{
 	//"SOCK2": "UNIX:/tmp/sock2",
 	//"SOCK3": "UNIX:/tmp/sock3",
 	//"screen":  "TCP:127.0.0.1:3333",
-	//"TCP2":  "TCP:127.0.0.1:9999",
+	"forward": "TCP:127.0.0.1:7777",
 }
 
 func proxy(a, b net.Conn) {
