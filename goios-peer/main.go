@@ -13,6 +13,6 @@ func main() {
 	log.Info("Hello Walrus before FullTimestamp=true")
 	customFormatter.FullTimestamp = true
 	log.Info("Hello Walrus after FullTimestamp=true")
-	log.SetLevel(log.TraceLevel)
+	//log.SetLevel(log.TraceLevel)
 	goios.Start()
 }
