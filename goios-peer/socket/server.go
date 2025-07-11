@@ -2,12 +2,16 @@ package socket
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"net"
 	"strings"
+	"sync"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.WithField("component", "server")
 
 var destinations = map[string]string{
 	"usbmuxd": "UNIX:/var/run/usbmuxd",
@@ -15,14 +19,12 @@ var destinations = map[string]string{
 }
 
 func init() {
-	// Установи уровень логирования (Debug, Info, Error и т.д.)
-	log.SetLevel(log.DebugLevel)
-	log.SetFormatter(&log.TextFormatter{
+	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
 }
 
-// isClosedError проверяет, является ли ошибка "use of closed network connection"
 func isClosedError(err error) bool {
 	if err == nil {
 		return false
@@ -31,111 +33,117 @@ func isClosedError(err error) bool {
 	return ok && (opErr.Err.Error() == "use of closed network connection" || opErr.Err.Error() == "connection reset by peer")
 }
 
-// proxy двусторонне проксирует данные между двумя соединениями
-func proxy(a, b net.Conn) {
-	log.WithFields(log.Fields{
+func isConnectionOpen(conn net.Conn) (bool, error) {
+	if conn == nil {
+		return false, errors.New("соединение равно nil")
+	}
+	if _, err := conn.Write(nil); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func startProxy(a, b net.Conn) {
+	log.WithFields(logrus.Fields{
 		"from": a.RemoteAddr(),
 		"to":   b.RemoteAddr(),
 	}).Info("Начало проксирования")
 
-	go func() {
-		defer func() {
-			a.Close()
-			b.Close()
-		}()
-		if _, err := a.Write(nil); err != nil {
-			log.WithError(err).Warn("Соединение A уже закрыто")
-			return
-		}
-		_, err := io.Copy(a, b)
-		if err != nil && !isClosedError(err) {
-			log.WithError(err).WithFields(log.Fields{
-				"source": b.RemoteAddr(),
-				"dest":   a.RemoteAddr(),
-			}).Error("Ошибка при копировании A<-B")
-		}
-	}()
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	closeOnce := func() {
+		a.Close()
+		b.Close()
+	}
 
 	go func() {
-		defer func() {
-			a.Close()
-			b.Close()
-		}()
-		if _, err := b.Write(nil); err != nil {
-			log.WithError(err).Warn("Соединение B уже закрыто")
+		defer wg.Done()
+		if ok, _ := isConnectionOpen(a); !ok {
+			log.Debug("A уже закрыто, не запускаем A->B")
 			return
 		}
 		_, err := io.Copy(b, a)
 		if err != nil && !isClosedError(err) {
-			log.WithError(err).WithFields(log.Fields{
+			log.WithError(err).WithFields(logrus.Fields{
 				"source": a.RemoteAddr(),
 				"dest":   b.RemoteAddr(),
-			}).Error("Ошибка при копировании B<-A")
+			}).Error("Ошибка A->B")
 		}
+		closeOnce()
 	}()
+
+	go func() {
+		defer wg.Done()
+		if ok, _ := isConnectionOpen(b); !ok {
+			log.Debug("B уже закрыто, не запускаем B->A")
+			return
+		}
+		_, err := io.Copy(a, b)
+		if err != nil && !isClosedError(err) {
+			log.WithError(err).WithFields(logrus.Fields{
+				"source": b.RemoteAddr(),
+				"dest":   a.RemoteAddr(),
+			}).Error("Ошибка B->A")
+		}
+		closeOnce()
+	}()
+
+	wg.Wait()
+	log.Info("Проксирование завершено")
 }
 
-// handleConn обрабатывает входящее соединение
-func handleConn(tcpConn net.Conn) {
-	defer tcpConn.Close()
+func handleConnection(clientConn net.Conn) {
+	defer clientConn.Close()
 
-	clientIP := tcpConn.RemoteAddr().String()
+	clientIP := clientConn.RemoteAddr().String()
 	log.WithField("client", clientIP).Debug("Новое подключение")
 
-	reader := bufio.NewReader(tcpConn)
-	line, err := reader.ReadString('\n')
+	reader := bufio.NewReader(clientConn)
+	keyLine, err := reader.ReadString('\n')
 	if err != nil {
-		log.WithError(err).WithField("client", clientIP).Error("Ошибка чтения handshake")
-		tcpConn.Write([]byte("Handshake read error\n"))
+		log.WithError(err).Error("Ошибка чтения handshake")
 		return
 	}
 
-	key := strings.TrimSpace(line)
+	key := strings.TrimSpace(keyLine)
 	dst, ok := destinations[key]
 	if !ok {
-		msg := "Unknown destination key\n"
-		log.WithFields(log.Fields{
-			"client": clientIP,
-			"key":    key,
-		}).Warn("Неизвестный ключ маршрута")
-		tcpConn.Write([]byte(msg))
+		log.WithField("key", key).Warn("Неизвестный ключ маршрута")
+		clientConn.Write([]byte("Unknown destination key\n"))
 		return
 	}
 
 	parts := strings.SplitN(dst, ":", 2)
 	if len(parts) != 2 {
-		msg := "Invalid destination format\n"
-		log.WithField("dst", dst).Warn("Некорректный формат назначения")
-		tcpConn.Write([]byte(msg))
+		log.Warn("Некорректный формат назначения")
+		clientConn.Write([]byte("Invalid destination format\n"))
 		return
 	}
 
 	var remoteConn net.Conn
-	proto, addr := parts[0], parts[1]
-
-	switch proto {
+	switch parts[0] {
 	case "UNIX":
-		remoteConn, err = net.Dial("unix", addr)
+		remoteConn, err = net.Dial("unix", parts[1])
 	case "TCP":
-		remoteConn, err = net.Dial("tcp", addr)
+		remoteConn, err = net.Dial("tcp", parts[1])
 	default:
-		msg := "Unknown protocol\n"
-		log.WithField("proto", proto).Warn("Неизвестный протокол")
-		tcpConn.Write([]byte(msg))
+		log.WithField("proto", parts[0]).Warn("Неизвестный протокол")
+		clientConn.Write([]byte("Unknown protocol\n"))
 		return
 	}
 
 	if err != nil {
-		msg := "Failed to connect to destination\n"
-		log.WithError(err).WithFields(log.Fields{
-			"proto": proto,
-			"addr":  addr,
-		}).Error("Ошибка подключения к целевому адресу")
-		tcpConn.Write([]byte(msg))
+		log.WithError(err).WithFields(logrus.Fields{
+			"proto": parts[0],
+			"addr":  parts[1],
+		}).Error("Ошибка подключения к целевому сокету")
+		clientConn.Write([]byte("Failed to connect to destination\n"))
 		return
 	}
+	defer remoteConn.Close()
 
-	// Отправляем всё, что было прочитано после handshake
+	// Передаем остатки после handshake
 	go func() {
 		_, err := io.Copy(remoteConn, reader)
 		if err != nil && !isClosedError(err) {
@@ -143,23 +151,23 @@ func handleConn(tcpConn net.Conn) {
 		}
 	}()
 
-	proxy(tcpConn, remoteConn)
+	startProxy(clientConn, remoteConn)
 }
 
-func Start() {
-	ln, err := net.Listen("tcp", ":27015")
+func StartServer() {
+	listener, err := net.Listen("tcp", ":27015")
 	if err != nil {
 		log.WithError(err).Fatal("Ошибка запуска сервера")
 	}
-	defer ln.Close()
-	log.Info("TCP-прокси слушает на порту :27015")
+	defer listener.Close()
+	log.Info("TCP-сервер слушает на :27015")
 
 	for {
-		conn, err := ln.Accept()
+		conn, err := listener.Accept()
 		if err != nil {
-			log.WithError(err).Error("Ошибка при принятии соединения")
+			log.WithError(err).Error("Ошибка принятия соединения")
 			continue
 		}
-		go handleConn(conn)
+		go handleConnection(conn)
 	}
 }
