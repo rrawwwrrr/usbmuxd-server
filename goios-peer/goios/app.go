@@ -58,7 +58,7 @@ func Start() {
 	if err != nil {
 		log.Info(err)
 	}
-	go socket.Start()
+	go socket.StartServer()
 	runWda(device)
 
 }
