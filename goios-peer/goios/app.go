@@ -53,8 +53,8 @@ func Start() {
 	}
 	log.Info(conn)
 	log.Println("tunnel найден для устройства Udid=", tunnel.Udid)
-	log.Println("Запускаем mjpeg stream server ")
-	err = StartMJPEGStreamingServer(device, "3333")
+	//log.Println("Запускаем mjpeg stream server ")
+	//err = StartMJPEGStreamingServer(device, "3333")
 	if err != nil {
 		log.Info(err)
 	}
